@@ -4,7 +4,7 @@ import { login, atualizarIptu, novoLogin, getIptuPorIdUsuario, getQRCodeOrCodBar
 const router = Router();
 
 router.post("/login", login);
-router.put("/novo-login", novoLogin);
+router.post("/novo-login", novoLogin);
 router.post("/atualizar-iptu", atualizarIptu);
 router.post("/iptu-por-usuario", getIptuPorIdUsuario);
 router.post("/codigo-qr-ou-barra", getQRCodeOrCodBarras);
