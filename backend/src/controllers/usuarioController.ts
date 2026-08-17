@@ -7,7 +7,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     const query =
-        `SELECT * FROM usuario WHERE email = '$1' AND senha = '$2'`;
+        `SELECT * FROM usuario WHERE email = $1 AND senha = $2`;
 
     console.log(`Query Executada: ${query}`);
 
@@ -33,7 +33,7 @@ export const novoLogin = async (req: Request, res: Response) => {
     const { email, password, nome } = req.body;
 
     const queryNomeIpuExiste =
-        `SELECT * FROM iptu WHERE nome = '$1'`;
+        `SELECT * FROM iptu WHERE nome = $1`;
 
     console.log(`Query Executada: ${queryNomeIpuExiste}`);
 
@@ -43,7 +43,7 @@ export const novoLogin = async (req: Request, res: Response) => {
 
         const query =
             `INSERT INTO usuario (email, senha, nome, tipo_usuario_id)
-             VALUES ('$1', '$2', '$3', 3)`;
+             VALUES ($1, $2, $3, 3)`;
 
         console.log(`Query Executada: ${query}`);
 
@@ -51,7 +51,7 @@ export const novoLogin = async (req: Request, res: Response) => {
 
         const queryIdUsuario =
             `SELECT id FROM usuario
-             WHERE email = '$1' AND senha = '$2'`;
+             WHERE email = $1 AND senha = $2`;
 
         console.log(`Query Executada: ${queryIdUsuario}`);
 
@@ -59,8 +59,8 @@ export const novoLogin = async (req: Request, res: Response) => {
 
         const queryUpdateTabelaIptu =
             `UPDATE iptu
-             SET usuario_id = '$1'
-             WHERE nome = '$2'`;
+             SET usuario_id = $1
+             WHERE nome = $2`;
 
         console.log(`Query Executada: ${queryUpdateTabelaIptu}`);
 
@@ -104,8 +104,8 @@ export const atualizarIptu = async (req: Request, res: Response) => {
 
     const query =
         `UPDATE iptu
-         SET valor = '$1'
-         WHERE usuario_id = '$2'`;
+         SET valor = $1
+         WHERE usuario_id = $2`;
 
     console.log(`Query Executada: ${query}`);
 
@@ -133,7 +133,7 @@ export const getIptuPorIdUsuario = async (
         usuarioId,
     } = req.body;
     const query =
-        `SELECT * FROM iptu WHERE usuario_id = '$1'`;
+        `SELECT * FROM iptu WHERE usuario_id = $1`;
 
     console.log(`Query Executada: ${query}`);
 
