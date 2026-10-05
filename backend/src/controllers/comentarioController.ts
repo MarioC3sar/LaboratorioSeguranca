@@ -14,7 +14,6 @@ export const criarComentario = async (req: Request, res: Response) => {
 
     const query = `INSERT INTO comentario (texto, usuario_id) VALUES ($1, $2)`;
 
-    // Log para você acompanhar no terminal do laboratório
     console.log(`Comentário recebido de forma segura do usuário ID: ${usuarioId}`);
 
     try {
