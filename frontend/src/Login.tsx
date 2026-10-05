@@ -17,13 +17,13 @@ function Login() {
         try {
             const response = await axios.post(
                 "/usuario/login",
-                { email, password }
+                { email, password }, {withCredentials: true}
             );
 
             if(!response.data.success) {
                 setMessage("Erro no login");
             } else {
-                localStorage.setItem("user", JSON.stringify(response.data.user));
+
                 navigate("/dashboard");
             }
         } catch (error: unknown){
@@ -39,10 +39,11 @@ function Login() {
         e.preventDefault();
 
         try {
-            
+
             const response = await axios.post(
                 "/usuario/novo-login",
-                { email, password, nome }
+                { email, password, nome },
+                {withCredentials: true}
             );
             
             if (response.data.success) {

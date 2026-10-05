@@ -18,6 +18,7 @@ function Dashboard() {
 
   const [message, setMessage] = useState("");
   const [menuAberto, setMenuAberto] = useState(false);
+  const [tokenCsrf, setTokenCsrf] = useState("");
   const [iptu, setIptu] = useState<Iptuu | null>(null);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
@@ -37,121 +38,81 @@ function Dashboard() {
 
 
   useEffect(() => {
-
     const buscarDados = async () => {
-
       try {
+        const response = await axios.get("/usuario/payload-usuario", { withCredentials: true });
 
-        const usuarioStorage = localStorage.getItem("user");
-
-        if (!usuarioStorage) {
-          console.error("Usuário não encontrado no localStorage");
+        if (!response.data.success) {
+          console.error("Usuário não encontrado");
           return;
         }
 
-        const usuario = JSON.parse(usuarioStorage);
+        setUser(response.data.payload);
+        setTokenCsrf(response.data.cryptoToken);
 
-        console.log("Usuário recuperado do storage:", usuario);
-
-        setUser(usuario);
-
-
-        const response = await axios.post<{ iptu: Iptuu[] }>(
-          "usuario/iptu-por-usuario",
-          {
-            usuarioId: usuario.id
-          }
-        );
-
-        setIptu(response.data.iptu[0]);
+        // CORREÇÃO: Adicionada a barra no início da URL
+        const responseIptu = await axios.get("/usuario/iptu-por-usuario", { withCredentials: true });
+        setIptu(responseIptu.data.iptu[0]);
 
       } catch (error) {
-
         console.error("Erro ao buscar dados do usuário", error);
-
       }
     };
-
 
     const buscarComentarios = async () => {
-
       try {
-
-        const response = await axios.get(
-          "/comentario"
-        );
-
+        // CORREÇÃO: Adicionado withCredentials para o middleware de auth liberar o acesso
+        const response = await axios.get("/comentario", { withCredentials: true });
         setComentarios(response.data);
-
       } catch (error) {
-
-        console.error(
-          "Erro ao buscar comentários",
-          error
-        );
+        console.error("Erro ao buscar comentários", error);
       }
     };
-
 
     buscarDados();
     buscarComentarios();
-
   }, []);
 
-
   const enviarComentario = async () => {
-
     if (!novoComentario.trim()) return;
 
-
     try {
-
-      const usuarioStorage = localStorage.getItem("user");
-
-      if (!usuarioStorage) {
-        console.error("Usuário não encontrado");
-        return;
-      }
-
-      const usuario = JSON.parse(usuarioStorage);
-
-
+      // CORREÇÃO: Sintaxe do Axios ajustada (URL, Body, Config)
       await axios.post(
         "/comentario",
         {
-          texto: novoComentario,
-          usuarioId: usuario.id
+          texto: novoComentario // O corpo da requisição (req.body)
+        },
+        {
+          withCredentials: true, // OBRIGATÓRIO: Envia o cookie JWT
+          headers: {
+            "X-CSRF-Token": tokenCsrf // OBRIGATÓRIO: Envia o Token CSRF real no cabeçalho
+          }
         }
       );
 
-
-      const response = await axios.get(
-        "/comentario"
-      );
-
+      // Atualiza a lista após enviar (com withCredentials)
+      const response = await axios.get("/comentario", { withCredentials: true });
       setComentarios(response.data);
-
       setNovoComentario("");
 
     } catch (error) {
-
-      console.error(
-        "Erro ao enviar comentário",
-        error
-      );
+      console.error("Erro ao enviar comentário", error);
     }
   };
 
-
   const buscarCodigo = async () => {
-
-    const response = await axios.get(
-      "usuario/codigo-qr-ou-barra?tipo=" + tipoCodigo
-    );
-
-    setHtmlRetorno(response.data);
+    try {
+      // CORREÇÃO: Adicionada a barra inicial e o withCredentials
+      const response = await axios.get(
+        "/usuario/codigo-qr-ou-barra?tipo=" + tipoCodigo,
+        { withCredentials: true }
+      );
+      setHtmlRetorno(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar QR Code", error);
+    }
   };
-
 
   return (
     <div style={styles.container}>
@@ -306,16 +267,15 @@ function Dashboard() {
                   </strong>
 
 
-                  {/* 
+                  {/*
                     VULNERÁVEL A STORED XSS
 
                     O conteúdo vindo do banco é interpretado
                     como HTML pelo navegador.
                   */}
+                  {comentario.texto}
                   <div
-                    dangerouslySetInnerHTML={{
-                      __html: comentario.texto
-                    }}
+
                   />
 
                 </div>

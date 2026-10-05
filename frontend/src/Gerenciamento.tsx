@@ -1,9 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import type { Iptuu } from "./Tipos/Iptuu";
 
 function Gerenciamento() {
+    const navigate = useNavigate();
 
   const [user, setUser] = useState<{
     id: number;
@@ -15,6 +17,7 @@ function Gerenciamento() {
   const [iptus, setIptus] = useState<Iptuu[]>([]);
   const [novoValor, setNovoValor] = useState<{ [key: number]: number }>({});
   const [menuAberto, setMenuAberto] = useState(false);
+  const [tokenCsrf, setTokenCsrf] = useState("");
 
 
   useEffect(() => {
@@ -23,21 +26,23 @@ function Gerenciamento() {
 
       try {
 
-        const usuarioStorage = localStorage.getItem("user");
+        const responsePayload = await axios.get(
+          "/usuario/payload-usuario",
+          { withCredentials: true }
+        );
 
-        if (!usuarioStorage) {
-          console.error("Usuário não encontrado no localStorage");
+        if (!responsePayload.data.success) {
+          alert("Você não tem permissão para acessar esta página.");
+          navigate("/dashboard");
+          return;
+        }
+        if (!responsePayload.data.payload) {
+          console.error("Usuário não encontrado.");
           return;
         }
 
-        const usuario = JSON.parse(usuarioStorage);
-
-        console.log(
-          "Usuário recuperado do storage:",
-          usuario
-        );
-
-        setUser(usuario);
+        setUser(responsePayload.data.payload);
+        setTokenCsrf(responsePayload.data.cryptoToken);
 
         const response = await axios.get<{
           iptu: Iptuu[]
@@ -49,10 +54,15 @@ function Gerenciamento() {
 
       } catch (error) {
 
-        console.error(
-          "Erro ao buscar dados",
-          error
-        );
+         if (axios.isAxiosError(error)) {
+
+        if (error.response?.status === 403) {
+            alert("Você não tem permissão para acessar esta página.");
+            navigate("/dashboard");
+            return;
+        }
+
+    }
 
       }
 
@@ -61,7 +71,7 @@ function Gerenciamento() {
 
     buscarDados();
 
-  }, []);
+  }, [navigate]);
 
 
   const atualizarIptu = async (
@@ -69,12 +79,15 @@ function Gerenciamento() {
   ) => {
 
     try {
-      await axios.put(
+      await axios.post(
         "/usuario/atualizar-iptu",
         {
+          headers: {
+            "X-CSRF-Token": tokenCsrf
+        },
           usuarioId: usuarioId,
           novoValor: novoValor[usuarioId]
-        }
+        }, {withCredentials: true}
       );
 
 

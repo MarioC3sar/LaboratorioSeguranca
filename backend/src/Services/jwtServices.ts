@@ -3,7 +3,9 @@ import { RetornoPayload } from "../Tipos/retornoPayload";
 
 export default function ValidarToken(token: string): RetornoPayload | null {
     try {
+
         const decoded = jwt.verify(token, (global as any).segredoJwt) as RetornoPayload;
+
         return {
             id: decoded.id,
             tipo: decoded.tipo,
@@ -11,6 +13,7 @@ export default function ValidarToken(token: string): RetornoPayload | null {
             nome: decoded.nome
         };
     } catch (error) {
+        console.error("Erro ao validar o token:", error);
         return null;
     }
 }
